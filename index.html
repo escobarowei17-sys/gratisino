@@ -1,0 +1,406 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#16834a">
+<title>Gratisino – Alles kostenlos</title>
+<meta name="description" content="Kostenlose Gegenstände in ganz Deutschland finden und verschenken.">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f7f5;color:#202820}
+header{background:#fff;padding:16px 5%;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #e5eae5}
+.logo{font-size:27px;font-weight:800;color:#16834a}
+button,.btn{border:0;border-radius:9px;padding:12px 16px;background:#16834a;color:white;font-weight:bold;cursor:pointer;text-decoration:none}
+button:disabled{opacity:.6;cursor:wait}
+main{max-width:1050px;margin:auto;padding:24px 16px}
+.hero{background:#e4f5e9;padding:32px 20px;border-radius:18px;text-align:center}
+h1{font-size:clamp(27px,5vw,42px);margin:0 0 12px}
+.hero p{line-height:1.6}
+.search{display:flex;gap:8px;max-width:600px;margin:22px auto 0}
+input,select,textarea{width:100%;padding:13px;border:1px solid #ccd6cc;border-radius:9px;font-size:16px;background:white}
+h2{margin-top:30px}
+.categories{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cat{background:white;color:#202820;border:1px solid #e2e8e2;padding:15px 6px;text-align:center;border-radius:12px}
+.cat.active{border:2px solid #16834a;background:#e4f5e9}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:white;border:1px solid #e4e9e4;border-radius:12px;overflow:hidden;min-width:0}
+.picture{height:170px;display:grid;place-items:center;background:#e9eee9;font-size:42px}
+.picture img{width:100%;height:100%;object-fit:cover}
+.info{padding:12px}
+.card h3{font-size:17px;margin:0 0 8px;overflow-wrap:anywhere}
+.muted{font-size:13px;color:#697469;line-height:1.5}
+.free{color:#16834a;font-weight:bold}
+.formbox,.authbox{margin-top:22px;background:white;padding:18px;border-radius:14px}
+.formbox label,.authbox label{display:block;margin:14px 0 6px}
+.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.msg{overflow-wrap:anywhere;line-height:1.5}
+footer{text-align:center;padding:28px;color:#697469;font-size:13px}
+@media(max-width:560px){
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.categories{grid-template-columns:repeat(2,1fr)}
+.search,.authgrid{grid-template-columns:1fr;display:grid}
+.hero{padding:25px 14px}
+.picture{height:130px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Gratisino</div>
+  <div>
+    <button id="logoutBtn" hidden>Abmelden</button>
+    <a class="btn" href="#verschenken">＋ Verschenken</a>
+  </div>
+</header>
+<main>
+<section class="hero">
+  <h1>Gute Dinge. Kostenlos.</h1>
+  <p>Finde kostenlose Gegenstände in deiner Nähe.<br>Verschenken statt wegwerfen – in ganz Deutschland.</p>
+  <div class="search">
+    <input id="search" placeholder="Was suchst du?" aria-label="Suchbegriff">
+    <input id="city" placeholder="Stadt oder PLZ" aria-label="Stadt oder Postleitzahl">
+    <button id="searchBtn">Suchen</button>
+  </div>
+</section>
+<section class="authbox" id="account">
+  <h2 style="margin-top:0">Benutzerkonto</h2>
+  <p class="muted">Melde dich an oder erstelle ein kostenloses Konto, um Dinge zu verschenken.</p>
+  <label for="email">E-Mail-Adresse</label>
+  <input id="email" type="email" autocomplete="email" placeholder="name@beispiel.de">
+  <label for="password">Passwort</label>
+  <input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="Mindestens 8 Zeichen">
+  <div class="authgrid" style="margin-top:12px">
+    <button id="signupBtn">Konto erstellen</button>
+    <button id="loginBtn">Anmelden</button>
+  </div>
+  <p id="authMessage" class="msg" role="status"></p>
+  <p id="sessionMessage" class="muted"></p>
+</section>
+<h2>Kategorien</h2>
+<div class="categories" id="categories">
+  <button class="cat active" data-cat="Alle">🔎 Alle</button>
+  <button class="cat" data-cat="Möbel">🛋️ Möbel</button>
+  <button class="cat" data-cat="Elektronik">📱 Elektronik</button>
+  <button class="cat" data-cat="Fahrräder">🚲 Fahrräder</button>
+  <button class="cat" data-cat="Haushalt">🏠 Haushalt</button>
+  <button class="cat" data-cat="Kleidung">👕 Kleidung</button>
+  <button class="cat" data-cat="Kinder">🧸 Kinder</button>
+  <button class="cat" data-cat="Garten">🌱 Garten</button>
+  <button class="cat" data-cat="Sonstiges">📦 Sonstiges</button>
+</div>
+<h2>Kostenlose Angebote</h2>
+<p class="muted" id="listMessage">Angebote werden geladen …</p>
+<div class="grid" id="items"></div>
+<section class="formbox" id="verschenken">
+  <h2>Etwas verschenken?</h2>
+  <p class="muted">Bitte melde dich zuerst an. Deine Anzeige kann bis zu 11 Fotos enthalten.</p>
+  <form id="listingForm">
+    <label for="title">Titel des Gegenstands</label>
+    <input id="title" required maxlength="100" placeholder="z. B. Tisch zu verschenken">
+    <label for="category">Kategorie</label>
+    <select id="category">
+      <option>Möbel</option><option>Elektronik</option>
+      <option>Fahrräder</option><option>Haushalt</option>
+      <option>Kleidung</option><option>Kinder</option>
+      <option>Garten</option><option>Sonstiges</option>
+    </select>
+    <label for="location">Stadt oder PLZ</label>
+    <input id="location" required maxlength="80" placeholder="z. B. Berlin">
+    <label for="description">Beschreibung</label>
+    <textarea id="description" required maxlength="1000" rows="3" placeholder="Beschreibe den Gegenstand"></textarea>
+    <label for="photos">Fotos (maximal 11, je höchstens 5 MB)</label>
+    <input id="photos" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+    <p class="muted" id="photoCount">Noch keine Fotos ausgewählt.</p>
+    <button id="publishBtn" type="submit">Anzeige veröffentlichen</button>
+    <p id="formMessage" class="msg" role="status"></p>
+  </form>
+</section>
+</main>
+<footer>Gratisino · Verschenken statt wegwerfen<br>Deutschlandweit kostenlos Dinge weitergeben.</footer>
+</body>
+</html>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://hkaobabvhrzafsnibqpu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_TWDzTU7eKbUE7g3V8dxBXQ_lLePBNL2";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let active = "Alle";
+let allListings = [];
+
+const $ = id => document.getElementById(id);
+
+function show(id, text) {
+  $(id).textContent = text;
+}
+
+function safe(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[c]));
+}
+
+function updateAccount() {
+  $("logoutBtn").hidden = !currentUser;
+  show("sessionMessage", currentUser
+    ? "Angemeldet: " + currentUser.email
+    : "Du bist nicht angemeldet.");
+}
+
+async function refreshSession() {
+  const {data, error} = await db.auth.getSession();
+  currentUser = data?.session?.user ?? null;
+  updateAccount();
+  if (error) show("authMessage", error.message);
+}
+
+$("signupBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  if (!email || password.length < 8) {
+    show("authMessage", "Bitte gültige E-Mail und Passwort mit mindestens 8 Zeichen eingeben.");
+    return;
+  }
+
+  $("signupBtn").disabled = true;
+  show("authMessage", "Konto wird erstellt …");
+
+  const {data, error} = await db.auth.signUp({email, password});
+
+  $("signupBtn").disabled = false;
+
+  if (error) {
+    show("authMessage", error.message);
+    return;
+  }
+
+  currentUser = data.session ? data.user : null;
+  updateAccount();
+
+  show("authMessage", data.session
+    ? "Konto erstellt. Du bist angemeldet."
+    : "Bitte bestätige deine E-Mail über den Link in deinem Postfach. Danach kannst du dich anmelden.");
+});
+
+$("loginBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  if (!email || !password) {
+    show("authMessage", "Bitte E-Mail und Passwort eingeben.");
+    return;
+  }
+
+  $("loginBtn").disabled = true;
+  const {data, error} = await db.auth.signInWithPassword({email, password});
+  $("loginBtn").disabled = false;
+
+  if (error) {
+    show("authMessage", "Anmeldung fehlgeschlagen. Prüfe deine Daten und bestätige gegebenenfalls deine E-Mail.");
+    return;
+  }
+
+  currentUser = data.user;
+  updateAccount();
+  show("authMessage", "Du bist angemeldet.");
+});
+
+$("logoutBtn").addEventListener("click", async () => {
+  const {error} = await db.auth.signOut();
+
+  if (error) {
+    show("authMessage", error.message);
+    return;
+  }
+
+  currentUser = null;
+  updateAccount();
+  show("authMessage", "Du wurdest abgemeldet.");
+});
+
+async function loadListings() {
+  show("listMessage", "Angebote werden geladen …");
+
+  const {data, error} = await db
+    .from("listings")
+    .select("id,title,category,location,description,image_urls,created_at")
+    .eq("status", "active")
+    .order("created_at", {ascending:false});
+
+  if (error) {
+    allListings = [];
+    render();
+    show("listMessage", "Fehler beim Laden. Bitte Supabase-Einstellungen prüfen.");
+    console.error(error);
+    return;
+  }
+
+  allListings = data || [];
+  show("listMessage", allListings.length
+    ? allListings.length + " echte Anzeige(n)"
+    : "Noch keine Anzeigen. Verschenke als Erste(r) etwas!");
+  render();
+}
+
+function render() {
+  const q = $("search").value.trim().toLowerCase();
+  const city = $("city").value.trim().toLowerCase();
+
+  const list = allListings.filter(x =>
+    (active === "Alle" || x.category === active) &&
+    (String(x.title) + " " + String(x.description) + " " +
+     String(x.category) + " " + String(x.location)).toLowerCase().includes(q) &&
+    String(x.location).toLowerCase().includes(city)
+  );
+
+  $("items").innerHTML = list.length ? list.map(x => {
+    const urls = Array.isArray(x.image_urls) ? x.image_urls : [];
+    const picture = urls.length
+      ? '<div class="picture"><img src="' + safe(urls[0]) +
+        '" alt="' + safe(x.title) + '" loading="lazy"></div>'
+      : '<div class="picture">🎁</div>';
+
+    return '<article class="card">' + picture +
+      '<div class="info"><h3>' + safe(x.title) + '</h3>' +
+      '<div class="free">Kostenlos</div><p>' +
+      safe(x.description) + '</p><p class="muted">📍 ' +
+      safe(x.location) + '</p><p class="muted">' +
+      safe(x.category) + '</p></div></article>';
+  }).join("") : "<p>Keine passenden Anzeigen gefunden.</p>";
+}
+
+$("searchBtn").addEventListener("click", render);
+$("search").addEventListener("input", render);
+$("city").addEventListener("input", render);
+
+document.querySelectorAll(".cat").forEach(button => {
+  button.addEventListener("click", () => {
+    active = button.dataset.cat;
+    document.querySelectorAll(".cat").forEach(cat =>
+      cat.classList.toggle("active", cat === button)
+    );
+    render();
+  });
+});
+
+$("photos").addEventListener("change", () => {
+  const files = Array.from($("photos").files || []);
+
+  if (files.length > 11) {
+    $("photos").value = "";
+    show("photoCount", "Bitte höchstens 11 Fotos auswählen.");
+    return;
+  }
+
+  if (files.some(file => file.size > 5 * 1024 * 1024)) {
+    $("photos").value = "";
+    show("photoCount", "Jedes Foto darf höchstens 5 MB groß sein.");
+    return;
+  }
+
+  if (files.some(file => ![
+    "image/jpeg", "image/png", "image/webp", "image/gif"
+  ].includes(file.type))) {
+    $("photos").value = "";
+    show("photoCount", "Bitte nur JPG-, PNG-, WEBP- oder GIF-Bilder auswählen.");
+    return;
+  }
+
+  show("photoCount", files.length
+    ? files.length + " Foto(s) ausgewählt."
+    : "Noch keine Fotos ausgewählt.");
+});
+
+$("listingForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (!currentUser) {
+    show("formMessage", "Bitte zuerst anmelden oder ein Konto erstellen.");
+    $("account").scrollIntoView({behavior:"smooth"});
+    return;
+  }
+
+  const files = Array.from($("photos").files || []);
+
+  if (files.length > 11) {
+    show("formMessage", "Höchstens 11 Fotos erlaubt.");
+    return;
+  }
+
+  if (files.some(file => file.size > 5 * 1024 * 1024)) {
+    show("formMessage", "Jedes Foto darf höchstens 5 MB groß sein.");
+    return;
+  }
+
+  const title = $("title").value.trim();
+  const category = $("category").value;
+  const location = $("location").value.trim();
+  const description = $("description").value.trim();
+
+  if (!title || !category || !location || !description) {
+    show("formMessage", "Bitte alle Pflichtfelder ausfüllen.");
+    return;
+  }
+
+  $("publishBtn").disabled = true;
+  show("formMessage", "Anzeige wird veröffentlicht …");
+
+  const uploadedUrls = [];
+
+  try {
+    for (const file of files) {
+      const path = currentUser.id + "/" + crypto.randomUUID() +
+        "_" + file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+      const {error: uploadError} = await db.storage
+        .from("listing-images")
+        .upload(path, file, {contentType:file.type, upsert:false});
+
+      if (uploadError) throw uploadError;
+
+      const {data} = db.storage.from("listing-images").getPublicUrl(path);
+      uploadedUrls.push(data.publicUrl);
+    }
+
+    const {error: insertError} = await db.from("listings").insert({
+      user_id: currentUser.id,
+      title,
+      category,
+      location,
+      description,
+      image_urls: uploadedUrls,
+      status: "active"
+    });
+
+    if (insertError) throw insertError;
+
+    $("listingForm").reset();
+    show("photoCount", "Noch keine Fotos ausgewählt.");
+    show("formMessage", "Deine Anzeige wurde veröffentlicht!");
+    await loadListings();
+
+  } catch (error) {
+    console.error(error);
+    show("formMessage", "Fehler: " + (error.message || "Bitte Supabase-Berechtigungen prüfen."));
+  } finally {
+    $("publishBtn").disabled = false;
+  }
+});
+
+db.auth.onAuthStateChange((_event, session) => {
+  currentUser = session?.user ?? null;
+  updateAccount();
+});
+
+(async () => {
+  await refreshSession();
+  await loadListings();
+})();
+</script>
+</body>
+</html>
