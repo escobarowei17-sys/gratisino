@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#16834a">
+<title>Gratisino – Alles kostenlos</title>
+<meta name="description" content="Finde kostenlose Gegenstände in ganz Deutschland oder verschenke Dinge, die du nicht mehr brauchst.">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f7f5;color:#202820}
+header{background:#fff;padding:16px 5%;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #e5eae5}
+.logo{font-size:27px;font-weight:800;color:#16834a}
+button,.btn{border:0;border-radius:9px;padding:12px 16px;background:#16834a;color:white;font-weight:bold;cursor:pointer;text-decoration:none}
+main{max-width:1050px;margin:auto;padding:24px 16px}
+.hero{background:#e4f5e9;padding:32px 20px;border-radius:18px;text-align:center}
+h1{font-size:clamp(27px,5vw,42px);margin:0 0 12px}
+.hero p{line-height:1.6}
+.search{display:flex;gap:8px;max-width:600px;margin:22px auto 0}
+input,select,textarea{width:100%;padding:13px;border:1px solid #ccd6cc;border-radius:9px;font-size:16px;background:white}
+h2{margin-top:30px}
+.categories{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cat{background:white;border:1px solid #e2e8e2;padding:15px 6px;text-align:center;border-radius:12px;cursor:pointer}
+.cat.active{border:2px solid #16834a;background:#e4f5e9}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:white;border:1px solid #e4e9e4;border-radius:12px;overflow:hidden}
+.card .picture{height:120px;display:grid;place-items:center;background:#e9eee9;font-size:42px}
+.card .info{padding:12px}
+.card h3{font-size:17px;margin:0 0 8px}
+.muted{font-size:13px;color:#697469}
+.free{color:#16834a;font-weight:bold}
+.formbox{margin-top:28px;background:white;padding:18px;border-radius:14px}
+.formbox label{display:block;margin:14px 0 6px}
+footer{text-align:center;padding:28px;color:#697469;font-size:13px}
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}.categories{grid-template-columns:repeat(2,1fr)}.search{flex-direction:column}.hero{padding:25px 14px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Gratisino</div>
+  <a class="btn" href="#verschenken">＋ Verschenken</a>
+</header>
+<main>
+<section class="hero">
+  <h1>Gute Dinge. Kostenlos.</h1>
+  <p>Finde kostenlose Gegenstände in deiner Nähe.<br>Verschenken statt wegwerfen – in ganz Deutschland.</p>
+  <div class="search">
+    <input id="search" placeholder="Was suchst du?" aria-label="Suchbegriff">
+    <input id="city" placeholder="Stadt oder PLZ" aria-label="Stadt oder Postleitzahl">
+    <button onclick="filterItems()">Suchen</button>
+  </div>
+</section>
+
+<h2>Kategorien</h2>
+<div class="categories" id="categories">
+  <button class="cat active" data-cat="Alle">🔎 Alle</button>
+  <button class="cat" data-cat="Möbel">🛋️ Möbel</button>
+  <button class="cat" data-cat="Elektronik">📱 Elektronik</button>
+  <button class="cat" data-cat="Fahrräder">🚲 Fahrräder</button>
+  <button class="cat" data-cat="Haushalt">🏠 Haushalt</button>
+  <button class="cat" data-cat="Kleidung">👕 Kleidung</button>
+  <button class="cat" data-cat="Kinder">🧸 Kinder</button>
+  <button class="cat" data-cat="Garten">🌱 Garten</button>
+  <button class="cat" data-cat="Sonstiges">📦 Sonstiges</button>
+</div>
+
+<h2>Kostenlose Angebote</h2>
+<p class="muted">Beispielangebote – noch keine echten Inserate.</p>
+<div class="grid" id="items"></div>
+
+<section class="formbox" id="verschenken">
+  <h2>Etwas verschenken?</h2>
+  <p class="muted">Dieses Formular ist eine Vorschau. Die Veröffentlichung echter Inserate wird nach Einrichtung der Datenbank aktiviert.</p>
+  <form id="demoForm">
+    <label for="title">Titel des Gegenstands</label>
+    <input id="title" required maxlength="80" placeholder="z. B. Tisch zu verschenken">
+    <label for="category">Kategorie</label>
+    <select id="category">
+      <option>Möbel</option><option>Elektronik</option>
+      <option>Fahrräder</option><option>Haushalt</option>
+      <option>Kleidung</option><option>Kinder</option>
+      <option>Garten</option><option>Sonstiges</option>
+    </select>
+    <label for="location">Stadt oder PLZ</label>
+    <input id="location" required maxlength="80" placeholder="z. B. Berlin">
+    <label for="description">Beschreibung</label>
+    <textarea id="description" required maxlength="1000" rows="3" placeholder="Beschreibe den Gegenstand"></textarea>
+    <label for="photos">Fotos (maximal 11)</label>
+    <input id="photos" type="file" accept="image/*" multiple>
+    <p class="muted" id="photoCount">Noch keine Fotos ausgewählt.</p>
+    <button type="submit">Inserat testen</button>
+    <p id="formMessage" role="status"></p>
+  </form>
+</section>
+</main>
+<footer>Gratisino · Verschenken statt wegwerfen<br>Deutschlandweit kostenlos Dinge weitergeben.</footer>
+<script>
+const examples=[
+ {title:"Sofa zu verschenken",cat:"Möbel",city:"Berlin",emoji:"🛋️"},
+ {title:"Altes Fahrrad",cat:"Fahrräder",city:"Essen",emoji:"🚲"},
+ {title:"Geschirr abzugeben",cat:"Haushalt",city:"Dortmund",emoji:"🍽️"},
+ {title:"Kinderkleidung",cat:"Kleidung",city:"Hamburg",emoji:"👕"},
+ {title:"Schreibtischlampe",cat:"Elektronik",city:"München",emoji:"💡"},
+ {title:"Blumentöpfe",cat:"Garten",city:"Köln",emoji:"🪴"}
+];
+let active="Alle";
+function render(){
+ const q=document.getElementById("search").value.toLowerCase();
+ const city=document.getElementById("city").value.toLowerCase();
+ const list=examples.filter(x=>(active==="Alle"||x.cat===active)&&
+ (x.title+" "+x.cat+" "+x.city).toLowerCase().includes(q)&&
+ x.city.toLowerCase().includes(city));
+ document.getElementById("items").innerHTML=list.length?list.map(x=>
+ `<article class="card"><div class="picture">${x.emoji}</div><div class="info"><h3>${x.title}</h3><div class="free">Kostenlos</div><p class="muted">📍 ${x.city}</p></div></article>`
+ ).join(""):"<p>Keine passenden Beispielangebote gefunden.</p>";
+}
+function filterItems(){render()}
+document.querySelectorAll(".cat").forEach(b=>b.addEventListener("click",()=>{
+ active=b.dataset.cat;
+ document.querySelectorAll(".cat").forEach(c=>c.classList.toggle("active",c===b));
+ render();
+}));
+document.getElementById("photos").addEventListener("change",e=>{
+ const files=[...e.target.files];
+ if(files.length>11){e.target.value="";document.getElementById("photoCount").textContent="Bitte höchstens 11 Fotos auswählen.";return}
+ document.getElementById("photoCount").textContent=files.length+" Foto(s) ausgewählt.";
+});
+document.getElementById("demoForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ document.getElementById("formMessage").textContent="Die Vorschau funktioniert. Echte Inserate werden nach Einrichtung von Datenbank und Benutzerkonten möglich.";
+});
+render();
+</script>
+</body>
+</html>
